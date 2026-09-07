@@ -1,0 +1,174 @@
+{
+  "name": "codedelta",
+  "displayName": "CodeDelta",
+  "description": "Track development-focused VS Code and coding-agent text changes with accurate external diffs, bounded snapshots, and efficient live dashboards.",
+  "version": "0.5.4",
+  "publisher": "local-dev",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codedelta.openPanel",
+        "title": "CodeDelta: Open Panel"
+      },
+      {
+        "command": "codedelta.showDashboard",
+        "title": "CodeDelta: Open Full Dashboard"
+      },
+      {
+        "command": "codedelta.showStats",
+        "title": "CodeDelta: Show Stats"
+      },
+      {
+        "command": "codedelta.showLanguageStats",
+        "title": "CodeDelta: Show Language Stats"
+      },
+      {
+        "command": "codedelta.showFolderStats",
+        "title": "CodeDelta: Show Folder Stats"
+      },
+      {
+        "command": "codedelta.showFileStats",
+        "title": "CodeDelta: Show File Stats"
+      },
+      {
+        "command": "codedelta.showFileActivity",
+        "title": "CodeDelta: Show File Activity"
+      },
+      {
+        "command": "codedelta.selectDisplayScope",
+        "title": "CodeDelta: Select Status Bar Scope"
+      },
+      {
+        "command": "codedelta.resetSession",
+        "title": "CodeDelta: Reset Session"
+      },
+      {
+        "command": "codedelta.resetToday",
+        "title": "CodeDelta: Reset Today"
+      },
+      {
+        "command": "codedelta.resetWorkspace",
+        "title": "CodeDelta: Reset Workspace"
+      },
+      {
+        "command": "codedelta.resetAllTime",
+        "title": "CodeDelta: Reset All Time"
+      }
+    ],
+    "configuration": {
+      "title": "CodeDelta",
+      "properties": {
+        "codeDelta.displayScope": {
+          "type": "string",
+          "enum": [
+            "session",
+            "today",
+            "workspace",
+            "allTime"
+          ],
+          "enumDescriptions": [
+            "Changes since the current VS Code extension session started.",
+            "Changes made today across VS Code workspaces.",
+            "Persistent changes for the current workspace.",
+            "Persistent changes across all workspaces."
+          ],
+          "default": "session",
+          "description": "Which counter is shown in the status bar."
+        },
+        "codeDelta.showIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show an edit icon in the status bar."
+        },
+        "codeDelta.countUntitled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Count untitled documents only when VS Code has assigned a development language (for example Python or TypeScript). Plain Text is ignored."
+        },
+        "codeDelta.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/.venv/**",
+            "**/venv/**"
+          ],
+          "description": "Glob-like path patterns excluded from counting. Supports *, **, and ?."
+        },
+        "codeDelta.trackExternalChanges": {
+          "type": "boolean",
+          "default": true,
+          "description": "Track text-file changes made directly on disk by tools such as coding agents and CLI editors. Workspace files are snapshotted to calculate deltas."
+        },
+        "codeDelta.externalMaxFileBytes": {
+          "type": "number",
+          "default": 1048576,
+          "minimum": 1024,
+          "maximum": 16777216,
+          "description": "Maximum size in bytes of a file tracked for external on-disk changes."
+        },
+        "codeDelta.externalMaxFiles": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 100,
+          "maximum": 50000,
+          "description": "Maximum number of workspace files snapshotted for external-change tracking."
+        },
+        "codeDelta.externalSnapshotBudgetBytes": {
+          "type": "number",
+          "default": 67108864,
+          "minimum": 8388608,
+          "maximum": 536870912,
+          "description": "Maximum total UTF-8 snapshot cache used for external-change tracking. When reached, CodeDelta reports Partial tracking instead of consuming unbounded memory."
+        }
+      }
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "codedeltaPanel",
+          "title": "CodeDelta",
+          "icon": "resources/codedelta.svg"
+        }
+      ]
+    },
+    "views": {
+      "codedeltaPanel": [
+        {
+          "type": "webview",
+          "id": "codedelta.panelView",
+          "name": "CodeDelta",
+          "contextualTitle": "CodeDelta"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "vscode",
+    "productivity",
+    "coding",
+    "statistics",
+    "developer-tools",
+    "coding-agents"
+  ]
+}

@@ -1,0 +1,13 @@
+# Dependencies / test runtime
+node_modules/
+.vscode-test/
+coverage/
+
+# Packaged extensions
+*.vsix
+
+# Logs / temp
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

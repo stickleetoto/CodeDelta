@@ -1,0 +1,28 @@
+{
+  "schema": "gitmake.managed/v1",
+  "managed": [
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    ".vscode/launch.json",
+    ".vscodeignore",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "dashboard.js",
+    "development.js",
+    "extension.js",
+    "media/dashboard.png",
+    "package.json",
+    "panel.js",
+    "resources/codedelta.svg",
+    "stats.js",
+    "test/activation.test.js",
+    "test/dashboard.test.js",
+    "test/development.test.js",
+    "test/panel.test.js",
+    "test/stabilization.test.js",
+    "test/stats.test.js"
+  ]
+}
