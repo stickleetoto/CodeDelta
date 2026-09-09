@@ -88,22 +88,34 @@ function findBaselineMatch(file, key, baseFiles, usedKeys) {
   const exact = cleanFile(baseFiles[key], key);
   if (exact) return { key, file: exact };
 
-  // Core CodeDelta preserves cumulative file counters when a file is renamed,
-  // but the map key changes to the new URI. Match that moved record by the
-  // immutable-looking cumulative shape so a rename does not make old work look new.
+  // Core CodeDelta preserves cumulative counters when a file is renamed, but
+  // changes the map key to the new URI. A renamed successor may also receive
+  // additional edits before the next UI refresh, so match monotonic successors
+  // rather than requiring byte-for-byte identical cumulative totals.
   let candidate = null;
+  let candidateScore = Infinity;
+  let ambiguous = false;
   for (const [baseKey, raw] of Object.entries(baseFiles || {})) {
     if (usedKeys.has(baseKey)) continue;
     const base = cleanFile(raw, baseKey);
     if (!base) continue;
     if (base.languageId !== file.languageId) continue;
-    if (base.added !== file.added || base.removed !== file.removed) continue;
-    if (base.activity.created !== file.activity.created || base.activity.deleted !== file.activity.deleted) continue;
-    if (base.activity.renamed > file.activity.renamed) continue;
-    if (candidate) return { key: '', file: null }; // ambiguous: fail safe instead of guessing
-    candidate = { key: baseKey, file: base };
+    if (base.workspaceKey && file.workspaceKey && base.workspaceKey !== file.workspaceKey) continue;
+    if (base.added > file.added || base.removed > file.removed) continue;
+    if (base.activity.created > file.activity.created || base.activity.deleted > file.activity.deleted) continue;
+    if (base.activity.renamed >= file.activity.renamed) continue; // require evidence of a rename/move
+
+    const score = (file.added - base.added) + (file.removed - base.removed) +
+      ((file.activity.renamed - base.activity.renamed) * 4);
+    if (score < candidateScore) {
+      candidate = { key: baseKey, file: base };
+      candidateScore = score;
+      ambiguous = false;
+    } else if (score === candidateScore) {
+      ambiguous = true;
+    }
   }
-  return candidate || { key: '', file: null };
+  return candidate && !ambiguous ? candidate : { key: '', file: null };
 }
 
 function mergeCounters(counters) {
@@ -142,16 +154,25 @@ function isCounterMonotonic(current, baseline) {
   if (!baseline) return true;
   if (safeInt(current && current.added) < safeInt(baseline.added)) return false;
   if (safeInt(current && current.removed) < safeInt(baseline.removed)) return false;
-  for (const [key, rawBase] of Object.entries((baseline && baseline.files) || {})) {
-    const base = cleanFile(rawBase, key);
-    if (!base) continue;
-    const now = cleanFile(current && current.files && current.files[key], key);
-    if (!now) {
-      if (base.added || base.removed || base.activity.created || base.activity.deleted || base.activity.renamed) return false;
-      continue;
-    }
+
+  const baseFiles = (baseline && baseline.files) || {};
+  const usedBaselineKeys = new Set();
+  for (const [key, rawCurrent] of Object.entries((current && current.files) || {})) {
+    const now = cleanFile(rawCurrent, key);
+    if (!now) continue;
+    const match = findBaselineMatch(now, key, baseFiles, usedBaselineKeys);
+    if (!match.file) continue;
+    usedBaselineKeys.add(match.key);
+    const base = match.file;
     if (now.added < base.added || now.removed < base.removed) return false;
     if (now.activity.created < base.activity.created || now.activity.deleted < base.activity.deleted || now.activity.renamed < base.activity.renamed) return false;
+  }
+
+  for (const [key, rawBase] of Object.entries(baseFiles)) {
+    if (usedBaselineKeys.has(key)) continue;
+    const base = cleanFile(rawBase, key);
+    if (!base) continue;
+    if (base.added || base.removed || base.activity.created || base.activity.deleted || base.activity.renamed) return false;
   }
   return true;
 }
