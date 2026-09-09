@@ -24,8 +24,12 @@ jobs:
 
       - name: Syntax check
         run: |
+          node --check bootstrap.js
           node --check extension.js
           node --check stats.js
           node --check development.js
           node --check panel.js
           node --check dashboard.js
+          node --check git.js
+          node --check git-addon.js
+          node --check git-panel.js
