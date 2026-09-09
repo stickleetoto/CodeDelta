@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.6.0
+
+- Add **Git Awareness** as a separate layer on top of the existing v0.5 tracking core.
+- Add a Git-aware **Since Commit** counter derived from CodeDelta's observed Workspace activity rather than raw `git diff` output.
+- Use VS Code's built-in Git extension API for repository, branch, and HEAD context without adding runtime npm dependencies.
+- Add independent checkpoints for multi-repository workspaces; tracked files are assigned to the most specific containing Git root.
+- Record recent observed HEAD boundaries with CodeDelta added/removed/activity totals when meaningful work occurred.
+- Handle detached HEAD and Git-unavailable environments without breaking the main CodeDelta tracker.
+- Rebase Git checkpoints automatically when the core Workspace counter is explicitly reset and becomes non-monotonic.
+- Add rename-aware checkpoint subtraction so cumulative file records do not normally reappear as fresh work after a move.
+- Add a dedicated Git status-bar counter, bottom-panel Git Awareness view, full Git dashboard, and manual checkpoint-reset command.
+- Add `codeDelta.showGitStatus` and bounded `codeDelta.gitHistoryLimit` settings.
+- Add Git calculation and graceful-fallback tests, and extend CI syntax checks to all v0.6 modules.
+- Switch the extension entry point to `bootstrap.js`, which composes the unchanged core tracker with the Git Awareness addon.
+
 ## 0.5.4
 
 - Improve external same-line diff accuracy with bounded Myers insert/delete distance.
