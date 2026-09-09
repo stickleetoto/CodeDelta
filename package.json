@@ -1,8 +1,8 @@
 {
   "name": "codedelta",
   "displayName": "CodeDelta",
-  "description": "Track development-focused VS Code and coding-agent text changes with accurate external diffs, bounded snapshots, and efficient live dashboards.",
-  "version": "0.5.4",
+  "description": "Track development-focused VS Code and coding-agent text changes with accurate external diffs, Git-aware commit boundaries, bounded snapshots, and efficient live dashboards.",
+  "version": "0.6.0",
   "publisher": "local-dev",
   "license": "MIT",
   "engines": {
@@ -14,69 +14,31 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./extension.js",
+  "main": "./bootstrap.js",
   "contributes": {
     "commands": [
-      {
-        "command": "codedelta.openPanel",
-        "title": "CodeDelta: Open Panel"
-      },
-      {
-        "command": "codedelta.showDashboard",
-        "title": "CodeDelta: Open Full Dashboard"
-      },
-      {
-        "command": "codedelta.showStats",
-        "title": "CodeDelta: Show Stats"
-      },
-      {
-        "command": "codedelta.showLanguageStats",
-        "title": "CodeDelta: Show Language Stats"
-      },
-      {
-        "command": "codedelta.showFolderStats",
-        "title": "CodeDelta: Show Folder Stats"
-      },
-      {
-        "command": "codedelta.showFileStats",
-        "title": "CodeDelta: Show File Stats"
-      },
-      {
-        "command": "codedelta.showFileActivity",
-        "title": "CodeDelta: Show File Activity"
-      },
-      {
-        "command": "codedelta.selectDisplayScope",
-        "title": "CodeDelta: Select Status Bar Scope"
-      },
-      {
-        "command": "codedelta.resetSession",
-        "title": "CodeDelta: Reset Session"
-      },
-      {
-        "command": "codedelta.resetToday",
-        "title": "CodeDelta: Reset Today"
-      },
-      {
-        "command": "codedelta.resetWorkspace",
-        "title": "CodeDelta: Reset Workspace"
-      },
-      {
-        "command": "codedelta.resetAllTime",
-        "title": "CodeDelta: Reset All Time"
-      }
+      { "command": "codedelta.openPanel", "title": "CodeDelta: Open Panel" },
+      { "command": "codedelta.showDashboard", "title": "CodeDelta: Open Full Dashboard" },
+      { "command": "codedelta.showStats", "title": "CodeDelta: Show Stats" },
+      { "command": "codedelta.showLanguageStats", "title": "CodeDelta: Show Language Stats" },
+      { "command": "codedelta.showFolderStats", "title": "CodeDelta: Show Folder Stats" },
+      { "command": "codedelta.showFileStats", "title": "CodeDelta: Show File Stats" },
+      { "command": "codedelta.showFileActivity", "title": "CodeDelta: Show File Activity" },
+      { "command": "codedelta.selectDisplayScope", "title": "CodeDelta: Select Status Bar Scope" },
+      { "command": "codedelta.resetSession", "title": "CodeDelta: Reset Session" },
+      { "command": "codedelta.resetToday", "title": "CodeDelta: Reset Today" },
+      { "command": "codedelta.resetWorkspace", "title": "CodeDelta: Reset Workspace" },
+      { "command": "codedelta.resetAllTime", "title": "CodeDelta: Reset All Time" },
+      { "command": "codedelta.showGitStats", "title": "CodeDelta: Show Git Activity" },
+      { "command": "codedelta.showGitDashboard", "title": "CodeDelta: Open Git Dashboard" },
+      { "command": "codedelta.resetGitCheckpoint", "title": "CodeDelta: Reset Git Checkpoint" }
     ],
     "configuration": {
       "title": "CodeDelta",
       "properties": {
         "codeDelta.displayScope": {
           "type": "string",
-          "enum": [
-            "session",
-            "today",
-            "workspace",
-            "allTime"
-          ],
+          "enum": ["session", "today", "workspace", "allTime"],
           "enumDescriptions": [
             "Changes since the current VS Code extension session started.",
             "Changes made today across VS Code workspaces.",
@@ -84,12 +46,24 @@
             "Persistent changes across all workspaces."
           ],
           "default": "session",
-          "description": "Which counter is shown in the status bar."
+          "description": "Which counter is shown in the main CodeDelta status bar."
         },
         "codeDelta.showIcon": {
           "type": "boolean",
           "default": true,
-          "description": "Show an edit icon in the status bar."
+          "description": "Show an edit icon in the main CodeDelta status bar."
+        },
+        "codeDelta.showGitStatus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Git-aware Since Commit counter in the VS Code status bar when a Git repository is detected."
+        },
+        "codeDelta.gitHistoryLimit": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 200,
+          "description": "Maximum number of observed Git HEAD-boundary activity records kept per repository."
         },
         "codeDelta.countUntitled": {
           "type": "boolean",
@@ -98,18 +72,8 @@
         },
         "codeDelta.exclude": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "**/node_modules/**",
-            "**/.git/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/.next/**",
-            "**/.venv/**",
-            "**/venv/**"
-          ],
+          "items": { "type": "string" },
+          "default": ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/.next/**", "**/.venv/**", "**/venv/**"],
           "description": "Glob-like path patterns excluded from counting. Supports *, **, and ?."
         },
         "codeDelta.trackExternalChanges": {
@@ -142,21 +106,13 @@
     },
     "viewsContainers": {
       "panel": [
-        {
-          "id": "codedeltaPanel",
-          "title": "CodeDelta",
-          "icon": "resources/codedelta.svg"
-        }
+        { "id": "codedeltaPanel", "title": "CodeDelta", "icon": "resources/codedelta.svg" }
       ]
     },
     "views": {
       "codedeltaPanel": [
-        {
-          "type": "webview",
-          "id": "codedelta.panelView",
-          "name": "CodeDelta",
-          "contextualTitle": "CodeDelta"
-        }
+        { "type": "webview", "id": "codedelta.panelView", "name": "CodeDelta", "contextualTitle": "CodeDelta" },
+        { "type": "webview", "id": "codedelta.gitPanelView", "name": "Git Awareness", "contextualTitle": "CodeDelta Git Awareness" }
       ]
     }
   },
@@ -169,6 +125,8 @@
     "coding",
     "statistics",
     "developer-tools",
-    "coding-agents"
+    "coding-agents",
+    "git",
+    "commit"
   ]
 }
