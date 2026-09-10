@@ -5,6 +5,14 @@
   "version": "0.5.4",
   "publisher": "local-dev",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stickleetoto/CodeDelta.git"
+  },
+  "homepage": "https://github.com/stickleetoto/CodeDelta#readme",
+  "bugs": {
+    "url": "https://github.com/stickleetoto/CodeDelta/issues"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
